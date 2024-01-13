@@ -1,0 +1,31 @@
+{
+  "name": "update-guide-generator",
+  "version": "0.0.0",
+  "description": "Automatic generator of the Angular update guide",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mgechev/update-guide-generator.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "Angular"
+  ],
+  "author": "Minko Gechev <mgechev@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mgechev/update-guide-generator/issues"
+  },
+  "homepage": "https://github.com/mgechev/update-guide-generator#readme",
+  "dependencies": {
+    "@google/generative-ai": "^0.1.3",
+    "commander": "^11.1.0",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.1"
+  }
+}
