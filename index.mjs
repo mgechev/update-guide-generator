@@ -13,8 +13,8 @@ const info = (message) => {
   console.error("🗒️ ", c.blue(message));
 };
 
-const validVersions = (range) => {
-  return /(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)/.test(range);
+const validVersion = (range) => {
+  return /(\d+\.\d+\.\d+)(-(next|rc)\.\d)?/.test(range);
 };
 
 const getBreakingChanges = (commits) => {
@@ -27,9 +27,9 @@ const getBreakingChanges = (commits) => {
   return result;
 };
 
-const getCommits = (versions, path) => {
-  const command = `git log --pretty=format:%B ${versions[0]}..${versions[1]}`;
-  const commits = execSync(`cd ${options.path} && ${command}`).toString();
+const getCommits = (fromVersion, toVersion, path) => {
+  const command = `git log --pretty=format:%B ${fromVersion}..${toVersion}`;
+  const commits = execSync(`cd ${path} && ${command}`).toString();
   return commits;
 };
 
@@ -44,30 +44,44 @@ program
     "~/Projects/angular",
   )
   .option(
-    "-v, --versions <string>",
-    "Range of versions in the format X.Y.Z-A.B.C",
+    "-f, --from <string>",
+    "Range of versions in the format X.Y.Z",
+  )
+  .option(
+    "-t, --to <string>",
+    "Range of versions in the format X.Y.Z",
   );
 
 program.parse();
 
 const options = program.opts();
 
-const versionsOption = options.versions;
-if (!validVersions(versionsOption)) {
+const fromVersion = options.from;
+const toVersion = options.to;
+if (!validVersion(fromVersion) || !validVersion(toVersion)) {
   error(
-    "Wrong format of the versions range. Specify it in the format X.Y.Z-A.B.C",
+    "Wrong format of the versions range. Specify it in the format X.Y.Z",
   );
 }
 
-const versions = versionsOption.split("-");
-
-info(`Getting commits between versions ${versions[0]} and ${versions[1]}`);
-const commits = getCommits(versions, options.path);
+info(`Getting commits between versions ${fromVersion} and ${toVersion}`);
+const commits = getCommits(fromVersion, toVersion, options.path);
 
 info('Extracting "BREAKING CHANGE" messages');
-const changes = getBreakingChanges(commits);
+const changes = Array.from(new Set(getBreakingChanges(commits)));
 
-info("Querying Gemini Pro to generate the update guide");
-const formattedChanges = await formatBreakingChanges(changes, versions[1]);
+let result = [];
+for (let i = 0; i < changes.length; i += 2) {
+  const currentBatch = changes.slice(i, i + 2);
 
-console.log(formattedChanges);
+  info(`Querying Gemini Pro to generate the update guide. Breaking changes: [${i}, ${i + 2}] `);
+
+  try {
+    const formattedChanges = await formatBreakingChanges(currentBatch, toVersion);
+    result = result.concat(formattedChanges);
+  } catch {
+    i -= 2;
+  }
+}
+
+console.log(JSON.stringify(result, null, 2));

@@ -20,5 +20,7 @@ export const formatBreakingChanges = async (changes, version) => {
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
-  return response.text();
+  const jsonOutput = response.text().replace('```json', '').replace('```', '');
+
+  return JSON.parse(jsonOutput);
 };
