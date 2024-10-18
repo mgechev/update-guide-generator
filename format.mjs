@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 const getSchema = (version) => ({
-  description: "List of recipes",
+  description: "List of update instructions in the same order as the breaking changes",
   type: SchemaType.ARRAY,
   items: {
     type: SchemaType.OBJECT,
@@ -30,12 +30,7 @@ const getSchema = (version) => ({
       action: {
         type: SchemaType.STRING,
         description:
-          "Instruction explaining how a developer should update their application in response to this breaking change. This string should rephrase the breaking change message as actionable steps for the developer",
-        nullable: false,
-      },
-      original: {
-        type: SchemaType.STRING,
-        description: "Original breaking change message",
+          "Instruction explaining how a developer should update their application in response to this breaking change. This string should rephrase the breaking change message as actionable steps for the developer and be up to 300 characters. Do not include any newlines.",
         nullable: false,
       },
     },
@@ -45,7 +40,6 @@ const getSchema = (version) => ({
       "level",
       "step",
       "action",
-      "original",
     ],
   },
 });
@@ -53,10 +47,11 @@ const getSchema = (version) => ({
 export const formatBreakingChanges = async (changes, version) => {
   const genAI = new GoogleGenerativeAI(process.env.API_KEY);
   const model = genAI.getGenerativeModel({
-    model: "gemini-advanced",
+    model: "gemini-1.5-pro",
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: getSchema(version)
+      responseSchema: getSchema(version),
+      maxOutputTokens: 2000,
     },
   });
 
@@ -69,6 +64,17 @@ export const formatBreakingChanges = async (changes, version) => {
   const result = await model.generateContent(prompt);
   const response = await result.response;
   const jsonOutput = response.text();
+  let parsedResponse = null;
 
-  return JSON.parse(jsonOutput);
+  try {
+    parsedResponse = JSON.parse(jsonOutput);
+  } catch (e) {
+    throw new Error(`Unable to parse ${jsonOutput}`);
+  }
+
+  for (let i = 0; i < parsedResponse.length; i++) {
+    parsedResponse[i].original = changes[i];
+  }
+
+  return parsedResponse;
 };

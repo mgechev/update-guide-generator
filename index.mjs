@@ -72,16 +72,18 @@ const changes = Array.from(new Set(getBreakingChanges(commits)));
 
 info(`Found ${changes.length} breaking change${changes.length === 1 ? '' : 's'}`);
 
-const result = [];
-for (let i = 0; i < changes.length; i += 2) {
-  const currentBatch = changes.slice(i, i + 2);
+let result = [];
+const batchSize = 2;
+for (let i = 0; i < changes.length; i += batchSize) {
+  const currentBatch = changes.slice(i, i + batchSize);
 
-  info(`Querying Gemini Pro to generate the update guide. Breaking changes: [${i}, ${i + 2}] `);
+  info(`Querying Gemini Pro to generate the update guide. Breaking changes: [${i}, ${i + batchSize}] `);
 
   try {
     const formattedChanges = await formatBreakingChanges(currentBatch, toVersion);
     result = result.concat(formattedChanges);
-  } catch {
+  } catch (e) {
+    error(e);
     i -= 2;
   }
 }
