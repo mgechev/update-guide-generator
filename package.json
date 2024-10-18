@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/mgechev/update-guide-generator#readme",
   "dependencies": {
-    "@google/generative-ai": "^0.1.3",
+    "@google/generative-ai": "^0.21.0",
     "commander": "^11.1.0",
     "picocolors": "^1.0.0"
   },

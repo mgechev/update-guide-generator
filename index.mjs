@@ -70,7 +70,9 @@ const commits = getCommits(fromVersion, toVersion, options.path);
 info('Extracting "BREAKING CHANGE" messages');
 const changes = Array.from(new Set(getBreakingChanges(commits)));
 
-let result = [];
+info(`Found ${changes.length} breaking change${changes.length === 1 ? '' : 's'}`);
+
+const result = [];
 for (let i = 0; i < changes.length; i += 2) {
   const currentBatch = changes.slice(i, i + 2);
 
