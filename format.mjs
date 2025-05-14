@@ -47,7 +47,7 @@ const getSchema = (version) => ({
 export const formatBreakingChanges = async (changes, version) => {
   const genAI = new GoogleGenerativeAI(process.env.API_KEY);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-2.5-pro-preview-05-06",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: getSchema(version),
