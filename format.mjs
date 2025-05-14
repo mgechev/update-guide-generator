@@ -56,7 +56,9 @@ export const formatBreakingChanges = async (changes, version) => {
   });
 
   const prompt = `
-      List with each breaking change separated by the "##########" marker and newlines:
+      You're an expert in the Angular framework. Below you can find all the breaking changes
+      in the framework since the last release. Each breaking change is separated by the
+      "##########" and newlines.
   
       ${changes.join("\n##########\n")}
     `;
